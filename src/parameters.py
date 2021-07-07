@@ -1,4 +1,3 @@
-
 CELL_PARAMETERS = {
     "cells_in_x": 100,
     "cells_in_y": 100,
@@ -9,9 +8,17 @@ CELL_PARAMETERS = {
     "initial_coordinate": (25.645656, -100.288479),
 }
 
-X0_Y0_PLUME_COORD = [60,25]
+X0_Y0_PLUME_COORD = [60, 25]
 
 INITIAL_DRONE1_LOCATION = [40, 50]
 INITIAL_DRONE2_LOCATION = [50, 50]
 
-GROUND_SPEED = 10   # in [m/s]
+GROUND_SPEED = 10  # in [m/s]
+POLLUTANT_THRESHOLD = 0.01  # [ppm]
+INITIAL_TIME_4_PLUME = 800  # [sec]
+SIMULATION_TIME = 600  # [sec]
+
+HEIGHT_UAV1 = 3
+HEIGHT_UAV2 = 4
+
+STAGE = "exploration"

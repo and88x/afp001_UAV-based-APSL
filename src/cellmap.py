@@ -1,42 +1,45 @@
+"""To implement the probabilistic map"""
+from math import exp, pi
+from threading import Semaphore
 from numpy import (
     load as load_data,
     around,
     linspace,
     ones,
     zeros,
-    sum,
+    sum as suma,
     ceil,
     where,
     amin,
     sqrt,
+    array,
 )
 
-from threading import Semaphore
 from utils import get_location_meters, split_gps, saturate
 
 
-class CellMap(object):
+class CellMap:
     """This object represents the likelihood map"""
 
     def __init__(self, **kwarg):
         self.n_x = kwarg["cells_in_x"]
         self.n_y = kwarg["cells_in_y"]
-        x0 = kwarg["initial_cell_x"]
-        y0 = kwarg["initial_cell_y"]
+        x_0 = kwarg["initial_cell_x"]
+        y_0 = kwarg["initial_cell_y"]
         map_width = kwarg["map_width_in_mtrs"]
         map_long = kwarg["map_long_in_mtrs"]
-        home_GPS = kwarg["initial_coordinate"]
+        home_gps = kwarg["initial_coordinate"]
         #
-        self.Lx = float(map_width) / self.n_x
-        self.Ly = float(map_long) / self.n_y
+        self.l_x = float(map_width) / self.n_x
+        self.l_y = float(map_long) / self.n_y
         #
-        dis2lim4 = (self.n_x - x0 - 0.5) * self.Lx
-        dis2lim3 = (self.n_y - y0 - 0.5) * self.Ly
-        dis2lim2 = (x0 + 0.5) * self.Lx
-        dis2lim1 = (y0 + 0.5) * self.Ly
+        dis2lim4 = (self.n_x - x_0 - 0.5) * self.l_x
+        dis2lim3 = (self.n_y - y_0 - 0.5) * self.l_y
+        dis2lim2 = (x_0 + 0.5) * self.l_x
+        dis2lim1 = (y_0 + 0.5) * self.l_y
         #
-        limit3, limit4 = get_location_meters(home_GPS, (dis2lim3, dis2lim4))
-        limit1, limit2 = get_location_meters(home_GPS, (-dis2lim1, -dis2lim2))
+        limit3, limit4 = get_location_meters(home_gps, (dis2lim3, dis2lim4))
+        limit1, limit2 = get_location_meters(home_gps, (-dis2lim1, -dis2lim2))
         y_lat = linspace(limit1, limit3, self.n_y + 1)
         x_lon = linspace(limit2, limit4, self.n_x + 1)
         #
@@ -45,16 +48,16 @@ class CellMap(object):
         self.x_lon = around(x_lon[:-1] + x_with / 2, 6)
         self.y_lat = around(y_lat[:-1] + y_long / 2, 6)
         #
-        self.t0 = 0
+        self.t_0 = 0
         wind_x = load_data("databases/wind_x.npy")
         wind_y = load_data("databases/wind_y.npy")
         self.wind = sqrt(wind_x * wind_x + wind_y * wind_y)
         #
-        self.S_tl_tk = ones((self.n_x, self.n_y)) / (self.n_x * self.n_y)
+        self.S_tl_t_k = ones((self.n_x, self.n_y)) / (self.n_x * self.n_y)
         self.S_accum = zeros((self.n_x, self.n_y))
         self.gamma = ones((self.n_x, self.n_y)) / (self.n_x * self.n_y)
         #
-        self.medidas = [
+        self.measures = [
             zeros((self.n_x, self.n_y)),
             zeros((self.n_x, self.n_y)),
             zeros((self.n_x, self.n_y)),
@@ -67,63 +70,65 @@ class CellMap(object):
 
     def set_sample(
         self, x_index: int, y_index: int, value: float, index: int = 0
-    ):
+    ) -> None:
         """Set the measured value in the corresponding cell"""
         self.measures[index][x_index, y_index] = value
 
-    def update(self, xj: int, yj: int, tk: int, detection: bool = False):
+    def update(
+        self, x_j: int, y_j: int, t_k: int, detection: bool = False
+    ) -> None:
         """Build the source probability map based on one detection or
-        nondetection event at time tk"""
+        nondetection event at time t_k"""
 
         self.semaphore.acquire()
         memory = 7
-        if tk - self.t0 > memory:
-            t0 = tk - memory
+        if t_k - self.t_0 > memory:
+            t_0 = t_k - memory
         else:
-            t0 = 0
+            t_0 = 0
         #
-        vx = sum(self.wind[t0:tk, 0])
-        vy = 0
-        sx = 0.35
-        sy = 0.35
+        v_x = suma(self.wind[t_0:t_k, 0])
+        v_y = 0
+        s_x = 0.35
+        s_y = 0.35
         mu = 0.95
         #
-        wix = ceil(5 * sqrt(memory) * sx)
-        wiy = ceil(5 * sqrt(memory) * sy)
+        wix = ceil(5 * sqrt(memory) * s_x)
+        wiy = ceil(5 * sqrt(memory) * s_y)
         #
-        M = self.Lx * self.Ly
+        M = self.l_x * self.l_y
         #
         # From the article:
-        for xi in xrange(0, self.n_x):
-            for yi in xrange(0, self.n_y):
-                if abs(xj - xi - vx) < wix and abs(yj - yi - vy) < wiy:
+        for x_i in range(0, self.n_x):
+            for y_i in range(0, self.n_y):
+                if abs(x_j - x_i - v_x) < wix and abs(y_j - y_i - v_y) < wiy:
                     #
-                    self.S_tl_tk[xi, yi] = M * (
+                    self.S_tl_t_k[x_i, y_i] = M * (
                         (
                             exp(
-                                -((xj - xi - vx) ** 2)
-                                / (2 * (memory) * sx ** 2)
+                                -((x_j - x_i - v_x) ** 2)
+                                / (2 * (memory) * s_x ** 2)
                             )
                             * exp(
-                                -((yj - yi - vy) ** 2)
-                                / (2 * (memory) * sy ** 2)
+                                -((y_j - y_i - v_y) ** 2)
+                                / (2 * (memory) * s_y ** 2)
                             )
                         )
-                        / (2 * pi * (tk - self.t0) * sx * sy)
+                        / (2 * pi * (t_k - self.t_0) * s_x * s_y)
                     )
                 else:
-                    self.S_tl_tk[xi, yi] = 0
+                    self.S_tl_t_k[x_i, y_i] = 0
 
         #
-        self.S_tl_tk = self.S_tl_tk / sum(self.S_tl_tk)
+        self.S_tl_t_k = self.S_tl_t_k / suma(self.S_tl_t_k)
         #
         if detection:
-            self.S_accum = self.S_accum + self.S_tl_tk
-            self.beta = self.S_accum / tk
-            self.beta = self.beta / sum(self.beta)
+            self.S_accum = self.S_accum + self.S_tl_t_k
+            self.beta = self.S_accum / t_k
+            self.beta = self.beta / suma(self.beta)
         else:
-            self.gamma = self.gamma * (1 - mu * self.S_tl_tk)
-            self.gamma = self.gamma / sum(self.gamma)
+            self.gamma = self.gamma * (1 - mu * self.S_tl_t_k)
+            self.gamma = self.gamma / suma(self.gamma)
         #
         self.semaphore.release()
         #
@@ -139,18 +144,18 @@ class CellMap(object):
         #
         if type(min_x_lon).__name__ == "ndarray":
             if type(min_y_lat).__name__ == "ndarray":
-                a = saturate(min_x_lon[0], 0, 99)
-                b = saturate(min_y_lat[0], 0, 99)
+                aux_a = saturate(min_x_lon[0], 0, 99)
+                aux_b = saturate(min_y_lat[0], 0, 99)
             else:
-                a = saturate(min_x_lon[0], 0, 99)
-                b = saturate(min_y_lat, 0, 99)
+                aux_a = saturate(min_x_lon[0], 0, 99)
+                aux_b = saturate(min_y_lat, 0, 99)
         elif type(min_y_lat).__name__ == "ndarray":
-            a = saturate(min_x_lon, 0, 99)
-            b = saturate(min_y_lat[0], 0, 99)
+            aux_a = saturate(min_x_lon, 0, 99)
+            aux_b = saturate(min_y_lat[0], 0, 99)
         else:
-            a = saturate(min_x_lon, 0, 99)
-            b = saturate(min_y_lat, 0, 99)
-        return array([a, b])
+            aux_a = saturate(min_x_lon, 0, 99)
+            aux_b = saturate(min_y_lat, 0, 99)
+        return array([aux_a, aux_b])
 
     #
 
@@ -163,16 +168,20 @@ class CellMap(object):
                     self.y_lat[int(i[1])],
                     self.x_lon[int(i[0])],
                 ]
-            else:
-                print("The indices length must be 2")
-        elif dtype == "x_index":
+            print("The indices length must be 2")
+        elif dtype == "longitude":
             return self.x_lon[int(i)]
-        elif dtype == "y_index":
+        elif dtype == "latitude":
             return self.y_lat[int(i)]
-        else:
-            print(
-                "The `dtype` argument must be: cell_indices, x_index or y_index."
-            )
+        #
+        print(
+            "The `dtype` argument must be: cell_indices, longitude or latitude."
+        )
+        return None
+
+    def size(self):
+        """Returns the size of the map"""
+        return (self.n_x, self.n_y)
 
 
 if __name__ == "__main__":

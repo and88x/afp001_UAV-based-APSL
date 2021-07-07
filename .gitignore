@@ -5,6 +5,7 @@ __pycache__/
 
 # specific file
 src/quadcopter.py
+src/parameters.py
 databases/plume_dispersion_real_wind.npy
 
 # C extensions
