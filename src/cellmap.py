@@ -181,7 +181,7 @@ class CellMap:
 
     def size(self):
         """Returns the size of the map"""
-        return (self.n_x, self.n_y)
+        return (self.n_x - 1, self.n_y - 1)
 
 
 if __name__ == "__main__":

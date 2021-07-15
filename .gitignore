@@ -7,6 +7,9 @@ __pycache__/
 src/quadcopter.py
 src/parameters.py
 databases/plume_dispersion_real_wind.npy
+*.gif
+*.eps
+*.mp4
 
 # C extensions
 *.so

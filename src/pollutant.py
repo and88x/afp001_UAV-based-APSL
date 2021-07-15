@@ -33,9 +33,7 @@ class PollutantDistribution:
             x_index = saturate(x_index, 0, l_2 - 1)
             y_index = saturate(y_index, 0, l_1 - 1)
             #
-            return self.dispersion[
-                y_index, x_index, height, time + INITIAL_TIME_4_PLUME
-            ]
+            return self.dispersion[y_index, x_index, height, time]
         return random() * 0.009
 
     #
