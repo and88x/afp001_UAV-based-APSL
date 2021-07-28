@@ -3,6 +3,10 @@ Air pollution source localization through two UAVs
 Fernando Garcia
 7/23/2021
 
+<img src="./imgs/prueba_dron_1.PNG"
+     height="50%" 
+     width="50%"/>
+
 ## Overview
 
 This project aims to develop the algorithms that allow the navigation of
@@ -69,7 +73,7 @@ the other hand, when no UAV flies at the same height of the pollutant
 source the variables are not correlated. The correlation index on this
 experiments is -0.15.
 
-![](./imgs/garci16_correlation_dist_highest_measure.png)
+![](./imgs/garci16_correlation_dist_highest_measure_.png)
 
 ## Flights
 

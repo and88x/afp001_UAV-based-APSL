@@ -9,7 +9,6 @@ src/parameters.py
 databases/plume_dispersion_real_wind.npy
 *.eps
 *.mp4
-*.png
 *.csv
 *.Rproj
 runner.py
