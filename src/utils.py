@@ -2,7 +2,21 @@
 from math import cos, pi, atan2, sin, sqrt
 from dronekit import LocationGlobalRelative, LocationGlobal
 from pymavlink import mavutil
+from time import time
 
+def tic():
+    #Homemade version of matlab tic and toc functions
+    global startTime_for_tictoc
+    startTime_for_tictoc = time()
+
+def toc():
+    if 'startTime_for_tictoc' in globals():
+        val = time() - startTime_for_tictoc
+        print("Elapsed time is %f seconds." % val)
+        return val
+    else:
+        print("Toc: start time not set")
+        return None
 
 def get_location_meters(original_location, next_position):
     """

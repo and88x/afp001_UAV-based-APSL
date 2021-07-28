@@ -163,7 +163,7 @@ class Strategy4(Pilot):
             new_upper_limit = limit[0] // 2 + new_lower_limit + 1
             # print(f"new_lower_limit {self.vehicle.id} = ",new_lower_limit)
             #
-            step = 12
+            step = 10
             rand_num = 2 * rand(1, 2) - 1
             next_position = self.position_on_the_map + rand_num * step / (
                 spacing(0) + norm(rand_num)
@@ -191,7 +191,7 @@ class Strategy4(Pilot):
         )
         #
         if remaining_dist <= self.target_distance * 0.3:
-            step = 6
+            step = 5
             new_lower_limit = [
                 self.fitness_position[0][0] - step,
                 self.fitness_position[0][1] - step,

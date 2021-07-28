@@ -7,9 +7,12 @@ __pycache__/
 src/quadcopter.py
 src/parameters.py
 databases/plume_dispersion_real_wind.npy
-*.gif
 *.eps
 *.mp4
+*.png
+*.csv
+*.Rproj
+runner.py
 
 # C extensions
 *.so
@@ -135,3 +138,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.Rproj.user

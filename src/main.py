@@ -6,8 +6,9 @@ from cellmap import CellMap
 from pollutant import PollutantDistribution
 from pilot import Strategy4, Strategy2
 from Plotter import Plotter
-from utils import get_location_meters, get_distance_metres
+from utils import get_location_meters, get_distance_metres, tic, toc
 import csv
+import argparse
 from parameters import (
     CELL_PARAMETERS,
     X0_Y0_PLUME_COORD,
@@ -20,6 +21,12 @@ from parameters import (
     STAGE,
     INITIAL_TIME_4_PLUME,
 )
+
+parser = argparse.ArgumentParser()
+parser.add_argument("expe", type=int)
+parser.add_argument("plume_pos", type=int)
+args = parser.parse_args()
+print("********************* e%i p%i ***********************"%(args.expe, args.plume_pos))
 
 # aux
 plume_location = None
@@ -144,7 +151,7 @@ def take_measure_and_move(auto_piloto) -> None:
 reference_map = CellMap(**CELL_PARAMETERS)
 
 # Instance the plume
-plume_location = reference_map.cell2gps(X0_Y0_PLUME_COORD[0])
+plume_location = reference_map.cell2gps(X0_Y0_PLUME_COORD[args.plume_pos])
 source_gps = get_location_meters(plume_location, [4, 4])
 plume = PollutantDistribution(*plume_location)
 #
@@ -156,7 +163,7 @@ lat1, lon1 = reference_map.cell2gps(INITIAL_DRONE1_LOCATION)
 lat2, lon2 = reference_map.cell2gps(INITIAL_DRONE2_LOCATION)
 #
 CURRENT_TIME = 0
-graph = Plotter()
+# graph = Plotter()
 #
 drone_parameters_1 = {"id": 1, "lat": lat1, "lon": lon1}
 drone_parameters_2 = {"id": 2, "lat": lat2, "lon": lon2}
@@ -190,11 +197,12 @@ with Vehicle(**drone_parameters_1) as uav_1, Vehicle(**drone_parameters_2) as ua
         executor.submit(uav_2.takeoff, height=HEIGHT_UAV2)
     #
     while CURRENT_TIME < SIMULATION_TIME:
+        tic()
         show_plume_in_map()
         #
         take_measure_and_move(pilot_1)
         take_measure_and_move(pilot_2)
-        print("\033[F\033[F", end="")
+        #print("\033[F\033[F", end="")
         #
         to_graph = {
             "map": reference_map,
@@ -206,20 +214,22 @@ with Vehicle(**drone_parameters_1) as uav_1, Vehicle(**drone_parameters_2) as ua
             "upper_lat": upper_y,
             "time": CURRENT_TIME,
         }
-        graph.plot(**to_graph)
-        graph.plt.pause(0.001)
+        #graph.plot(**to_graph)
+        #graph.plt.pause(0.001)
         #
         if STAGE == "exploitation":
             pilot_1.vehicle.stage = "exploitation"
             pilot_2.vehicle.stage = "exploitation"
 
         CURRENT_TIME += 1
-        sleep(1)
+        sleep(1-toc())
         #
         if CURRENT_TIME % 20 == 0:
-            graph.fig.savefig("./Strategy4.eps", format="eps", dpi=1200)
+            pass
+            #graph.fig.savefig("./Strategy4_aux.eps", format="eps", dpi=1200)
 #
-graph.fig.savefig("./databases/Strategy4.eps", format="eps", dpi=1200)
+#graph.fig.savefig("./Strategy4_%i.eps"%(args.expe), format="eps", dpi=1200)
+#graph.fig.savefig("./Strategy4_%i.png"%(args.expe), format="png", dpi=1200)
 
 myFile = open("./databases/Strategy4.csv", "a")
 fieldnames = [
@@ -280,6 +290,6 @@ summary = {
 }
 with myFile:
     writer = csv.DictWriter(myFile, fieldnames=fieldnames, lineterminator="\n")
-    writer.writerow(resumen)
+    writer.writerow(summary)
 
 print("************************************************************")
