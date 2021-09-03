@@ -15,8 +15,8 @@ a determined search area of 500x500 m2. The entire project consists of a
 proposed Navigation Strategy and 3 others strategies that are used to
 compare their results. These results will be published on the article
 named *Equidistributed search+Probabilitybased tracking strategy to
-locate an air pollutant source with two UAVs* ([IEEE Early Access
-Article](https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText=Equidistributed%20search%2BProbability%20based%20tracking%20strategy%20to%20locate%20an%20air%20pollutant%20source%20with%20two%20UAVs)).
+locate an air pollutant source with two UAVs* ([IEEE
+Access](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9493205).
 The base algorithm used with each strategy is showed in the follow
 figure:
 
@@ -75,6 +75,10 @@ experiments is -0.15.
 
 ![](./imgs/garci16_correlation_dist_highest_measure_.png)
 
+![](./imgs/time_until_fisrt_detection.JPG)
+
+![](./imgs/distance_.JPG)
+
 ## Flights
 
 ### Proposed strategy (strategy 1)
@@ -112,6 +116,46 @@ our simulated platform:
     the location of the best measurement taken
 
 ![](./imgs/Strategy4_simulation.gif)
+
+## Conclussion and future work
+
+In this work, we presented an intelligent strategy to locate an air
+pollutant source on an outdoor area with two UAVs. This strategy was
+compared against the other three in simulated real-time experiments,
+where a dispersion-advection plume model was used. Unlike previous
+similar works, our research uses more realistic constraints on the UAVs
+platform (time of flight, ground speed, sensor sensitivity,
+communication coverage), in addition to experimenting with a very large
+search area and initial take-offs from different places. The proposed
+strategy uses an equidistributed search based on Hammersley sequences
+during the exploration phase. This allows the UAVs to cover different
+points of the search area, avoiding the repetition of sampling points.
+Additionally, the k-means grouping algorithm, TSP solver, and cubic
+spline algorithms are implemented in this phase to optimize and smooth
+the navigation. In the exploitation phase, the information taken by
+sensors is used to compute the probability of finding the pollutant
+source and redirect the search to better locations. In this phase,
+semicircular trajectories with decreasing radius are implemented.
+
+The best results of the proposed strategy were obtained in the
+exploitation stage, showing final locations closer to the source and
+higher pollutant concentrations.
+
+Future work will focus on implementing other bioinspired algorithms to
+explore efficiently the area. Also, planning is made to overcome the
+following disadvantages of the current work: in first instance, is
+necessary to add a wind model from acquired wind data to strengthen the
+probability map. The second improvement could be the replacement of the
+cubic spline with another path tracing algorithm. That algorithm must
+generate curved paths able to diminish the number of speed reductions in
+UAVs and increase the chances of having smoother navigation.
+
+### Reference paper
+
+A. F. García-Calle, L. E. Garza-Castañón and L. I. Minchala-Avila,
+“Equidistributed Search+Probability Based Tracking Strategy to Locate
+an Air Pollutant Source With Two UAVs,” in IEEE Access, vol. 9,
+pp. 118168-118180, 2021, doi: 10.1109/ACCESS.2021.3099425.
 
 *AF projects: Providing high-quality and very reliable solutions for
 your science/engineering problems.*
